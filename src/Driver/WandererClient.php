@@ -137,9 +137,6 @@ final class WandererClient
         }
 
         $status = $response->getStatusCode();
-        if ($status >= 400) {
-            throw $this->translateStatus($status, $method, $path);
-        }
 
         if (app()->bound('log')) {
             logger()->debug(sprintf(
@@ -161,7 +158,15 @@ final class WandererClient
             return [];
         }
 
-        return json_decode($body, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        try {
+            return json_decode($body, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        } catch (\JsonException $e) {
+            throw new WandererApiException(
+                sprintf('Wanderer %s %s returned malformed JSON', $method, $path),
+                $status,
+                $e,
+            );
+        }
     }
 
     private function translateStatus(?int $status, string $method, string $path, ?\Throwable $previous = null): WandererApiException
