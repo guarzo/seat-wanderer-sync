@@ -1,80 +1,77 @@
 <?php
 
-namespace RecursiveTree\Seat\WandererAccessSync\Http\Controllers;
+namespace Guarzo\Seat\WandererSync\Http\Controllers;
 
+use Guarzo\Seat\WandererSync\Models\WandererAccessListInstance;
+use Guarzo\Seat\WandererSync\Models\WandererAccessListRole;
+use Guarzo\Seat\WandererSync\Services\MappingService;
+use Guarzo\Seat\WandererSync\Support\Outcome;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use RecursiveTree\Seat\WandererAccessSync\Models\WandererAccessListInstance;
-use RecursiveTree\Seat\WandererAccessSync\Models\WandererAccessListRole;
+use Illuminate\View\View;
 use Seat\Web\Http\Controllers\Controller;
 use Seat\Web\Models\Acl\Role;
 
-class SettingsController extends Controller
+final class SettingsController extends Controller
 {
-    public function list()
-    {
-        $roles = WandererAccessListRole::all();
-        $seat_roles = Role::all();
-        $wanderer_access_lists = WandererAccessListInstance::all();
+    public function __construct(private readonly MappingService $mappings) {}
 
-        return view('wanderer-access-sync::list', compact('roles', 'seat_roles','wanderer_access_lists'));
+    public function list(): View
+    {
+        return view('wanderer-sync::list', [
+            'roles' => WandererAccessListRole::with(['role', 'accessList'])->get(),
+            'seat_roles' => Role::all(),
+            'wanderer_access_lists' => WandererAccessListInstance::all(),
+        ]);
     }
 
-    public function createMapping(Request $request)
+    public function createMapping(Request $request): RedirectResponse
     {
-        $request->validate([
+        $data = $request->validate([
             'role' => 'required|integer',
             'acl' => 'required|integer',
         ]);
 
-        if(!WandererAccessListInstance::find($request->acl)) {
-            return redirect()->back()->with('error','access list doesn\'t exist');
+        if (!WandererAccessListInstance::find($data['acl'])) {
+            return back()->with('error', trans('wanderer-sync::settings.acl_not_found'));
         }
 
-        $role = new WandererAccessListRole();
-        $role->role_id = $request->role;
-        $role->wanderer_instance_id = $request->acl;
-        $role->save();
-
-        return redirect()->back()->with('success','Successfully added role mapping');
+        return $this->flash($this->mappings->createMapping($data['role'], $data['acl']));
     }
 
-    public function createWandererAccessList(Request $request)
+    public function deleteMapping(Request $request): RedirectResponse
     {
-        $request->validate([
+        $data = $request->validate(['id' => 'required|integer']);
+        $this->mappings->deleteMapping($data['id']);
+        return back()->with('success', trans('wanderer-sync::settings.mapping_deleted'));
+    }
+
+    public function createWandererAccessList(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
             'url' => 'required|string',
             'id' => 'required|string',
-            'token' => 'required|string'
+            'token' => 'required|string',
         ]);
 
-        $acl = new WandererAccessListInstance();
-        $acl->wanderer_url = $request->url;
-        $acl->access_list_id = $request->id;
-        $acl->access_list_token = $request->token;
-
-        $acl->save();
-
-        return redirect()->back()->with('success','Successfully added wanderer access list');
+        return $this->flash($this->mappings->createInstance($data['url'], $data['id'], $data['token']));
     }
 
-    public function deleteMapping(Request $request)
+    public function deleteInstance(Request $request): RedirectResponse
     {
-        $request->validate([
-            'id' => 'required|integer',
-        ]);
-
-        WandererAccessListRole::destroy($request->id);
-
-        return  redirect()->back()->with('success','Successfully deleted role mapping.');
+        $data = $request->validate(['id' => 'required|integer']);
+        $this->mappings->deleteInstance($data['id']);
+        return back()->with('success', trans('wanderer-sync::settings.instance_deleted'));
     }
 
-    public function deleteInstance(Request $request)
+    private function flash(Outcome $outcome): RedirectResponse
     {
-        $request->validate([
-            'id' => 'required|integer',
-        ]);
-
-        WandererAccessListInstance::destroy($request->id);
-
-        return  redirect()->back()->with('success','Successfully deleted role mapping.');
+        if ($outcome->isSuccess()) {
+            return back()->with('success', trans('wanderer-sync::settings.added'));
+        }
+        if ($outcome->isExisted()) {
+            return back()->with('warning', trans('wanderer-sync::settings.already_exists'));
+        }
+        return back()->with('error', trans("wanderer-sync::settings.{$outcome->reasonKey()}"));
     }
 }

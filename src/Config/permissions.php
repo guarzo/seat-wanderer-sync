@@ -2,7 +2,7 @@
 
 return [
     'edit' => [
-        'label' => 'wanderer-access-sync::settings.permission_edit',
-        'description' => 'wanderer-access-sync::settings.permission_edit_description',
-    ]
+        'label' => 'wanderer-sync::settings.permission_edit',
+        'description' => 'wanderer-sync::settings.permission_edit_description',
+    ],
 ];

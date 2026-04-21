@@ -1,0 +1,19 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/resources/*
+        - src/database/migrations/*
+    ignoreErrors:
+        # Mockery mocks are untyped by default; PHPStan cannot statically verify Mockery's fluent
+        # interface or confirm that MockInterface satisfies concrete type hints in test helpers.
+        - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::with#'
+        - path: tests/*
+          message: '#should return .+ but returns Mockery\\(MockInterface|LegacyMockInterface)#'
+        - path: tests/*
+          message: '#Parameter .+ expects .+, Mockery\\MockInterface given#'

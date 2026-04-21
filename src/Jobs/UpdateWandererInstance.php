@@ -1,59 +1,38 @@
 <?php
 
-namespace RecursiveTree\Seat\WandererAccessSync\Jobs;
+namespace Guarzo\Seat\WandererSync\Jobs;
 
+use Guarzo\Seat\WandererSync\Models\WandererAccessListInstance;
+use Guarzo\Seat\WandererSync\Services\SyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use RecursiveTree\Seat\WandererAccessSync\Models\WandererAccessListInstance;
-use RecursiveTree\Seat\WandererAccessSync\Models\WandererAccessListRole;
-use Seat\Eveapi\Models\RefreshToken;
 
-class UpdateWandererInstance implements ShouldQueue
+final class UpdateWandererInstance implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, Dispatchable;
+    use Dispatchable, InteractsWithQueue, Queueable;
 
-    private WandererAccessListInstance $accessListInstance;
+    public function __construct(
+        private readonly WandererAccessListInstance $instance,
+    ) {}
 
+    /** @return string[] */
     public function tags(): array
     {
-        return ["seat-wanderer-access-sync"];
+        return ['seat-wanderer-sync'];
     }
 
-    /**
-     * @param WandererAccessListInstance $accessListInstance
-     */
-    public function __construct(WandererAccessListInstance $accessListInstance)
+    public function handle(SyncService $sync): void
     {
-        $this->accessListInstance = $accessListInstance;
-    }
+        $result = $sync->syncInstance($this->instance);
 
-    public function handle()
-    {
-        // since the access list id is a UUID, we can assume it is unique even across wanderer installs
-        $access_list_roles = WandererAccessListRole::with(['role'])
-            ->where('wanderer_instance_id', $this->accessListInstance->id)
-            ->get();
-        if($access_list_roles->isEmpty()) return;
-
-        $user_ids = collect();
-        foreach ($access_list_roles as $role) {
-            $user_ids = $user_ids->merge($role->role->users()->pluck('id'));
-        }
-
-        $access_list = $this->accessListInstance->getAccessList();
-        $access_list->seedMembers();
-
-        $allowed_character_ids = RefreshToken::whereIn('user_id',$user_ids)->pluck('character_id');
-        $forbidden_character_ids = $access_list->getMembers()->diff($allowed_character_ids);
-
-        foreach ($forbidden_character_ids as $character_id){
-            $access_list->deleteMember($character_id);
-        }
-
-        foreach ($allowed_character_ids as $character_id) {
-            $access_list->addMember($character_id);
+        if (app()->bound('log')) {
+            logger()->info(sprintf(
+                '[seat-wanderer-sync] instance=%d %s',
+                $this->instance->id,
+                $result->summary(),
+            ));
         }
     }
 }

@@ -3,37 +3,37 @@
 use Illuminate\Support\Facades\Route;
 
 Route::group([
-    'namespace'  => 'RecursiveTree\Seat\WandererAccessSync\Http\Controllers',
+    'namespace'  => 'Guarzo\Seat\WandererSync\Http\Controllers',
     'middleware' => ['web', 'auth', 'locale'],
-    'prefix' => 'wanderer-sync',
+    'prefix'     => 'wanderer-sync',
 ], function () {
     Route::get('/settings', [
-        'as'   => 'wanderer-access-sync::settings',
-        'uses' => 'SettingsController@list',
-        'middleware' => 'can:wanderer-access-sync.edit'
+        'as'         => 'wanderer-sync::settings',
+        'uses'       => 'SettingsController@list',
+        'middleware' => 'can:wanderer-sync.edit',
     ]);
 
     Route::post('/settings/mapping', [
-        'as'   => 'wanderer-access-sync::createMapping',
-        'uses' => 'SettingsController@createMapping',
-        'middleware' => 'can:wanderer-access-sync.edit'
+        'as'         => 'wanderer-sync::createMapping',
+        'uses'       => 'SettingsController@createMapping',
+        'middleware' => 'can:wanderer-sync.edit',
     ]);
 
     Route::post('/settings/mapping/delete', [
-        'as'   => 'wanderer-access-sync::deleteMapping',
-        'uses' => 'SettingsController@deleteMapping',
-        'middleware' => 'can:wanderer-access-sync.edit'
+        'as'         => 'wanderer-sync::deleteMapping',
+        'uses'       => 'SettingsController@deleteMapping',
+        'middleware' => 'can:wanderer-sync.edit',
     ]);
 
     Route::post('/settings/accesslist', [
-        'as'   => 'wanderer-access-sync::createWandererAccessList',
-        'uses' => 'SettingsController@createWandererAccessList',
-        'middleware' => 'can:wanderer-access-sync.edit'
+        'as'         => 'wanderer-sync::createWandererAccessList',
+        'uses'       => 'SettingsController@createWandererAccessList',
+        'middleware' => 'can:wanderer-sync.edit',
     ]);
 
     Route::post('/settings/accesslist/delete', [
-        'as'   => 'wanderer-access-sync::deleteInstance',
-        'uses' => 'SettingsController@deleteInstance',
-        'middleware' => 'can:wanderer-access-sync.edit'
+        'as'         => 'wanderer-sync::deleteInstance',
+        'uses'       => 'SettingsController@deleteInstance',
+        'middleware' => 'can:wanderer-sync.edit',
     ]);
 });

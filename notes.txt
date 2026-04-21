@@ -1,5 +1,0 @@
-Todo
-- readme
-- ui: use wanderer access list names
-- don't allow adding same role twice/silently drop it
-- don't allow adding same acl twice/silently drop it

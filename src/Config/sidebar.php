@@ -1,11 +1,12 @@
 <?php
+
 return [
-    'wanderer-access-sync' => [
-        'label' => 'wanderer-access-sync::settings.sidebar',
-        'name' => 'wanderer-access-sync::settings.sidebar',
+    'wanderer-sync' => [
+        'label' => 'wanderer-sync::settings.sidebar',
+        'name' => 'wanderer-sync::settings.sidebar',
         'icon' => 'fas fa-map',
-        'route' => 'wanderer-access-sync::settings',
+        'route' => 'wanderer-sync::settings',
         'route_segment' => 'wanderer-sync',
-        'permission' => 'wanderer-access-sync.edit',
-    ]
+        'permission' => 'wanderer-sync.edit',
+    ],
 ];
