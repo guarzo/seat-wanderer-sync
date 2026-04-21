@@ -1,0 +1,15 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/resources/*
+        - src/database/migrations/*
+    ignoreErrors:
+        # SeAT base classes from eveseat/services are not autoloaded during analysis; ignore.
+        - '#Call to an undefined method Seat\\Services\\Models\\ExtensibleModel.*#'
+        - '#Class Seat\\.*not found#'
