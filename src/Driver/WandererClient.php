@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-final class WandererClient
+class WandererClient
 {
     private readonly string $url;
     private readonly string $id;
