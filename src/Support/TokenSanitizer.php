@@ -17,7 +17,8 @@ final class TokenSanitizer
             return 'None';
         }
 
-        if (strlen($apiKey) <= $visibleChars) {
+        // Guard against substr(..., -0) which would return the full string.
+        if ($visibleChars <= 0 || strlen($apiKey) <= $visibleChars) {
             return str_repeat('*', strlen($apiKey));
         }
 

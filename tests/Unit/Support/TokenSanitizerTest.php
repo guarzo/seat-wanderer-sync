@@ -32,4 +32,14 @@ final class TokenSanitizerTest extends TestCase
     {
         $this->assertSame('***56', TokenSanitizer::maskApiKey('abc123def456', 2));
     }
+
+    public function test_zero_visible_chars_is_fully_masked(): void
+    {
+        $this->assertSame('******', TokenSanitizer::maskApiKey('secret', 0));
+    }
+
+    public function test_negative_visible_chars_is_fully_masked(): void
+    {
+        $this->assertSame('******', TokenSanitizer::maskApiKey('secret', -3));
+    }
 }

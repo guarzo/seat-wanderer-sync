@@ -26,12 +26,11 @@ final class SyncServiceTest extends TestCase
      * Build an instance stub whose `client()` method returns the provided mock WandererClient.
      * Uses a Mockery partial mock so we can override client() but keep a real ->id attribute.
      */
-    private function instanceWithClient(WandererClient $client, int $mappingCount = 1): WandererAccessListInstance
+    private function instanceWithClient(WandererClient $client): WandererAccessListInstance
     {
         $instance = Mockery::mock(WandererAccessListInstance::class)->makePartial();
         $instance->shouldReceive('client')->andReturn($client);
         $instance->shouldReceive('getAttribute')->with('id')->andReturn(1);
-        // SyncService checks mapping count via the resolver; we don't consult the DB.
         return $instance;
     }
 

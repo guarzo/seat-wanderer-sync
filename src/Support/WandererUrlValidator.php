@@ -31,9 +31,10 @@ final class WandererUrlValidator
             throw new InvalidArgumentException("Invalid URL: {$url}");
         }
 
-        if (!in_array($parsed['scheme'], ['http', 'https'], true)) {
+        $scheme = strtolower((string) $parsed['scheme']);
+        if (!in_array($scheme, ['http', 'https'], true)) {
             throw new InvalidArgumentException(
-                "Invalid URL scheme '{$parsed['scheme']}'. Only http and https are allowed."
+                "Invalid URL scheme '{$scheme}'. Only http and https are allowed."
             );
         }
 

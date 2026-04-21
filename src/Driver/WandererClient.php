@@ -10,6 +10,7 @@ use Guarzo\Seat\WandererSync\Support\WandererUrlValidator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Illuminate\Support\Collection;
@@ -129,8 +130,8 @@ class WandererClient
             );
         } catch (GuzzleException $e) {
             // All remaining Guzzle errors (BadResponseException etc.); translate by status.
-            $status = method_exists($e, 'getResponse') && $e->getResponse() !== null
-                ? $e->getResponse()->getStatusCode()
+            $status = $e instanceof RequestException
+                ? $e->getResponse()?->getStatusCode()
                 : null;
             throw $this->translateStatus($status, $method, $path, $e);
         }

@@ -34,20 +34,31 @@ class WandererAccessListInstance extends ExtensibleModel
     }
 
     /**
-     * Resolve the ACL's human-readable name, cached.
-     * Returns null on cache miss and API error (view falls back to UUID).
+     * Resolve the ACL's human-readable name, cached on success.
+     *
+     * Transient API failures return null without writing to the cache, so the next
+     * render retries instead of serving a stale failure for the full TTL.
      */
     public function aclName(): ?string
     {
-        $ttl = (int) config('wanderer-sync.acl_name_cache_ttl', 600);
         $key = "guarzo.wanderer_sync.acl_name.{$this->id}";
 
-        return Cache::remember($key, $ttl, function (): ?string {
-            try {
-                return $this->client()->fetchAclName();
-            } catch (\Throwable) {
-                return null;
-            }
-        });
+        $cached = Cache::get($key);
+        if (is_string($cached)) {
+            return $cached;
+        }
+
+        try {
+            $name = $this->client()->fetchAclName();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if ($name !== null) {
+            $ttl = (int) config('wanderer-sync.acl_name_cache_ttl', 600);
+            Cache::put($key, $name, $ttl);
+        }
+
+        return $name;
     }
 }

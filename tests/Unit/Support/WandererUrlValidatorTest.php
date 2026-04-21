@@ -4,6 +4,7 @@ namespace Guarzo\Seat\WandererSync\Tests\Unit\Support;
 
 use Guarzo\Seat\WandererSync\Support\WandererUrlValidator;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class WandererUrlValidatorTest extends TestCase
@@ -24,6 +25,14 @@ final class WandererUrlValidatorTest extends TestCase
         );
     }
 
+    public function test_accepts_uppercase_scheme(): void
+    {
+        $this->assertSame(
+            'HTTPS://wanderer.ltd',
+            WandererUrlValidator::validate('HTTPS://wanderer.ltd')
+        );
+    }
+
     public function test_strips_trailing_slashes(): void
     {
         $this->assertSame(
@@ -32,57 +41,24 @@ final class WandererUrlValidatorTest extends TestCase
         );
     }
 
-    public function test_rejects_empty_string(): void
+    /** @return iterable<string, array{string}> */
+    public static function invalidUrlProvider(): iterable
     {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('');
+        yield 'empty'             => [''];
+        yield 'unsupported scheme' => ['ftp://wanderer.ltd'];
+        yield 'missing host'      => ['https://'];
+        yield 'localhost'         => ['http://localhost'];
+        yield 'ipv4 loopback'     => ['http://127.0.0.1'];
+        yield 'private 10/8'      => ['http://10.1.2.3'];
+        yield 'private 192.168'   => ['http://192.168.1.1'];
+        yield 'link-local'        => ['http://169.254.1.1'];
+        yield 'ipv6 loopback'     => ['http://[::1]'];
     }
 
-    public function test_rejects_non_http_scheme(): void
+    #[DataProvider('invalidUrlProvider')]
+    public function test_rejects_invalid_url(string $url): void
     {
         $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('ftp://wanderer.ltd');
-    }
-
-    public function test_rejects_missing_host(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('https://');
-    }
-
-    public function test_rejects_localhost(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://localhost');
-    }
-
-    public function test_rejects_loopback_ipv4(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://127.0.0.1');
-    }
-
-    public function test_rejects_private_network_10_0_0_0(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://10.1.2.3');
-    }
-
-    public function test_rejects_private_network_192_168(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://192.168.1.1');
-    }
-
-    public function test_rejects_link_local(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://169.254.1.1');
-    }
-
-    public function test_rejects_ipv6_loopback(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        WandererUrlValidator::validate('http://[::1]');
+        WandererUrlValidator::validate($url);
     }
 }

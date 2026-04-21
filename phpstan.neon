@@ -9,11 +9,7 @@ parameters:
     excludePaths:
         - src/resources/*
         - src/database/migrations/*
-    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
-        # SeAT base classes from eveseat/services are not autoloaded during analysis; ignore.
-        - '#Call to an undefined method Seat\\Services\\Models\\ExtensibleModel.*#'
-        - '#Class Seat\\.*not found#'
         # Mockery mocks are untyped by default; PHPStan cannot statically verify Mockery's fluent
         # interface or confirm that MockInterface satisfies concrete type hints in test helpers.
         - '#Call to an undefined method Mockery\\ExpectationInterface\|Mockery\\HigherOrderMessage::with#'
